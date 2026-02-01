@@ -226,34 +226,43 @@ def upload_file():
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>Jukebox Upload</title>
+        <title>Upload</title>
         <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                   display: flex; flex-direction: column; align-items: center; 
-                   justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                   margin: 0; padding: 20px; }
-            .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-            h1 { color: #333; margin-top: 0; text-align: center; }
-            #drop-zone { width: 400px; height: 250px; border: 4px dashed #667eea; border-radius: 20px;
-                        display: flex; align-items: center; justify-content: center; background: #f8f9ff;
-                        color: #667eea; font-weight: bold; transition: 0.3s; cursor: pointer; margin: 20px 0; }
-            #drop-zone.hover { background: #667eea; color: white; transform: scale(1.05); }
-            .info { text-align: center; color: #666; margin-top: 10px; }
-            .btn { background: #667eea; color: white; padding: 12px 30px; border: none; 
-                   border-radius: 8px; cursor: pointer; margin: 10px 5px; font-size: 16px;
-                   text-decoration: none; display: inline-block; }
-            .btn:hover { background: #5568d3; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: #f5f5f5; padding: 40px 20px;
+            }
+            .container { max-width: 500px; margin: 0 auto; background: white; 
+                        padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            h1 { font-size: 24px; margin-bottom: 30px; color: #333; font-weight: 600; }
+            #drop-zone { 
+                border: 2px dashed #ddd; border-radius: 8px; padding: 60px 20px;
+                text-align: center; color: #999; cursor: pointer; transition: all 0.2s;
+                background: #fafafa;
+            }
+            #drop-zone:hover, #drop-zone.hover { 
+                border-color: #333; background: #f5f5f5; color: #333;
+            }
+            .info { text-align: center; color: #999; margin: 15px 0; font-size: 14px; }
+            .nav { display: flex; gap: 10px; margin-top: 30px; }
+            .btn { 
+                flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 6px;
+                text-align: center; text-decoration: none; color: #333; font-size: 14px;
+                background: white; transition: all 0.2s;
+            }
+            .btn:hover { background: #f5f5f5; border-color: #333; }
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>🎵 Musik hochladen</h1>
-            <div id="drop-zone">ZIEHE MP3-DATEIEN HIERHER</div>
-            <p class="info">oder klicke zum Auswählen</p>
+            <h1>🎵 Upload Music</h1>
+            <div id="drop-zone">Drop MP3 files here</div>
+            <p class="info">or click to select</p>
             <input type="file" id="file-input" style="display:none" accept=".mp3" multiple>
-            <div style="text-align: center;">
-                <a href="/manage" class="btn">📝 Songs verwalten</a>
-                <a href="/settings" class="btn">⚙️ Einstellungen</a>
+            <div class="nav">
+                <a href="/manage" class="btn">Manage</a>
+                <a href="/settings" class="btn">Settings</a>
             </div>
         </div>
         <script>
@@ -274,16 +283,16 @@ def upload_file():
                 for (let file of files) {
                     let formData = new FormData();
                     formData.append('file', file);
-                    zone.innerText = "Lade hoch: " + file.name;
+                    zone.innerText = "Uploading: " + file.name;
                     fetch('/upload', { method: 'POST', body: formData })
                     .then(res => res.json())
                     .then(data => {
-                        alert('✅ Hochgeladen: ' + data.file + '\\nID: ' + data.id);
-                        zone.innerText = "ZIEHE MP3-DATEIEN HIERHER";
+                        alert('✓ Uploaded: ' + data.file);
+                        zone.innerText = "Drop MP3 files here";
                     })
                     .catch(err => {
-                        alert('Upload fehlgeschlagen');
-                        zone.innerText = "ZIEHE MP3-DATEIEN HIERHER";
+                        alert('✗ Upload failed');
+                        zone.innerText = "Drop MP3 files here";
                     });
                 }
             }
@@ -301,9 +310,9 @@ def manage_songs():
     for song in songs:
         cover_preview = ""
         if song.get('cover'):
-            cover_preview = f'<img src="/covers/{song["cover"]}" style="max-width: 100px; max-height: 100px; border-radius: 8px;">'
+            cover_preview = f'<img src="/covers/{song["cover"]}" style="max-width: 100px; max-height: 100px; border-radius: 6px; border: 1px solid #eee;">'
         else:
-            cover_preview = '<div style="width: 100px; height: 100px; background: #eee; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999;">Kein Bild</div>'
+            cover_preview = '<div style="width: 100px; height: 100px; background: #f5f5f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #ccc; font-size: 12px; border: 1px solid #eee;">No image</div>'
         
         song_id = song['id']
         songs_html += f'''
@@ -311,88 +320,75 @@ def manage_songs():
             <div class="song-cover">
                 <div id="cover-preview-{song_id}">{cover_preview}</div>
                 <input type="file" id="cover-{song_id}" accept="image/*" style="display:none" onchange="uploadCover('{song_id}', this)">
-                <button onclick="document.getElementById('cover-{song_id}').click()" class="btn-small">Bild ändern</button>
+                <button onclick="document.getElementById('cover-{song_id}').click()" class="btn btn-small">Change image</button>
             </div>
             <div class="song-info">
                 <div class="form-group">
-                    <label>Titel:</label>
+                    <label>Title</label>
                     <input type="text" id="title-{song_id}" value="{song.get('title', '')}" class="form-input">
                 </div>
                 <div class="form-group">
-                    <label>Beschreibung:</label>
-                    <textarea id="desc-{song_id}" class="form-input" rows="3">{song.get('description', '')}</textarea>
+                    <label>Description</label>
+                    <textarea id="desc-{song_id}" class="form-input" rows="2">{song.get('description', '')}</textarea>
                 </div>
                 <div class="form-group">
-                    <label>ID:</label>
-                    <span class="filename">{song_id}</span>
-                </div>
-                <div class="form-group">
-                    <label>Dateiname:</label>
+                    <label>Filename</label>
                     <span class="filename">{song.get('filename', '')}</span>
                 </div>
-                <div class="form-group">
-                    <label>Hochgeladen:</label>
-                    <span class="filename">{song.get('uploaded_at', 'N/A')[:19]}</span>
-                </div>
-                <button onclick="saveSong('{song_id}')" class="btn-save">💾 Speichern</button>
-                <button onclick="deleteSong('{song_id}')" class="btn-delete">🗑️ Löschen</button>
+                <button onclick="saveSong('{song_id}')" class="btn btn-save">Save</button>
+                <button onclick="deleteSong('{song_id}')" class="btn btn-delete">Delete</button>
             </div>
         </div>
         '''
     
     if not songs_html:
-        songs_html = '<p style="text-align: center; color: #999; padding: 40px;">Keine Songs vorhanden. <a href="/upload">Lade welche hoch!</a></p>'
+        songs_html = '<div style="background: white; padding: 40px; border-radius: 8px; text-align: center; color: #999;">No songs yet. <a href="/upload" style="color: #333;">Upload some!</a></div>'
     
     return f'''
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>Songs verwalten</title>
+        <title>Manage Songs</title>
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                   min-height: 100vh; padding: 20px; }}
-            .header {{ background: white; padding: 20px 40px; border-radius: 15px; 
-                      margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                      display: flex; justify-content: space-between; align-items: center; }}
-            .header h1 {{ color: #333; }}
-            .container {{ max-width: 1200px; margin: 0 auto; }}
-            .song-item {{ background: white; padding: 30px; border-radius: 15px; 
-                         margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                         display: grid; grid-template-columns: 150px 1fr; gap: 30px; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                   background: #f5f5f5; padding: 20px; }}
+            .header {{ background: white; padding: 20px 30px; border-radius: 8px; 
+                      margin-bottom: 20px; display: flex; justify-content: space-between; 
+                      align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+            .header h1 {{ font-size: 24px; color: #333; font-weight: 600; }}
+            .container {{ max-width: 1000px; margin: 0 auto; }}
+            .song-item {{ background: white; padding: 25px; border-radius: 8px; 
+                         margin-bottom: 15px; display: grid; grid-template-columns: 120px 1fr; 
+                         gap: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
             .song-cover {{ text-align: center; }}
-            .song-info {{ }}
-            .form-group {{ margin-bottom: 20px; }}
-            .form-group label {{ display: block; color: #555; font-weight: 600; margin-bottom: 8px; }}
-            .form-input {{ width: 100%; padding: 12px; border: 2px solid #e0e0e0; 
-                          border-radius: 8px; font-size: 14px; font-family: inherit; }}
-            .form-input:focus {{ outline: none; border-color: #667eea; }}
-            .filename {{ color: #999; font-size: 14px; }}
-            .btn {{ background: #667eea; color: white; padding: 12px 30px; border: none; 
-                   border-radius: 8px; cursor: pointer; font-size: 16px; text-decoration: none;
-                   display: inline-block; }}
-            .btn:hover {{ background: #5568d3; }}
-            .btn-small {{ background: #667eea; color: white; padding: 8px 16px; border: none; 
-                         border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 10px; }}
-            .btn-small:hover {{ background: #5568d3; }}
-            .btn-save {{ background: #10b981; color: white; padding: 10px 24px; border: none; 
-                        border-radius: 8px; cursor: pointer; font-size: 15px; margin-right: 10px; }}
-            .btn-save:hover {{ background: #059669; }}
-            .btn-delete {{ background: #ef4444; color: white; padding: 10px 24px; border: none; 
-                          border-radius: 8px; cursor: pointer; font-size: 15px; }}
-            .btn-delete:hover {{ background: #dc2626; }}
+            .form-group {{ margin-bottom: 15px; }}
+            .form-group label {{ display: block; color: #666; font-size: 13px; 
+                                margin-bottom: 6px; font-weight: 500; }}
+            .form-input {{ width: 100%; padding: 10px; border: 1px solid #ddd; 
+                          border-radius: 6px; font-size: 14px; }}
+            .form-input:focus {{ outline: none; border-color: #333; }}
+            .filename {{ color: #999; font-size: 13px; }}
+            .btn {{ padding: 10px 20px; border: 1px solid #ddd; border-radius: 6px;
+                   cursor: pointer; font-size: 14px; text-decoration: none; background: white;
+                   color: #333; display: inline-block; transition: all 0.2s; }}
+            .btn:hover {{ background: #f5f5f5; border-color: #333; }}
+            .btn-small {{ padding: 8px 14px; font-size: 13px; margin-top: 8px; }}
+            .btn-save {{ background: #333; color: white; border-color: #333; margin-right: 8px; }}
+            .btn-save:hover {{ background: #000; }}
+            .btn-delete {{ background: white; color: #d32f2f; border-color: #d32f2f; }}
+            .btn-delete:hover {{ background: #d32f2f; color: white; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🎵 Songs verwalten</h1>
+                <h1>Manage Songs</h1>
                 <div>
-                    <a href="/upload" class="btn">➕ Songs hochladen</a>
-                    <a href="/settings" class="btn">⚙️ Einstellungen</a>
-                    <a href="/" class="btn">🎮 Zur Jukebox</a>
+                    <a href="/upload" class="btn">Upload</a>
+                    <a href="/settings" class="btn">Settings</a>
+                    <a href="/" class="btn">Jukebox</a>
                 </div>
             </div>
             
@@ -407,17 +403,11 @@ def manage_songs():
                 fetch('/api/update-song', {{
                     method: 'POST',
                     headers: {{ 'Content-Type': 'application/json' }},
-                    body: JSON.stringify({{
-                        id: songId,
-                        title: title,
-                        description: description
-                    }})
+                    body: JSON.stringify({{ id: songId, title: title, description: description }})
                 }})
                 .then(res => res.json())
-                .then(data => {{
-                    alert('✅ Gespeichert!');
-                }})
-                .catch(err => alert('❌ Fehler beim Speichern'));
+                .then(data => alert('✓ Saved'))
+                .catch(err => alert('✗ Error'));
             }}
             
             function uploadCover(songId, input) {{
@@ -435,15 +425,15 @@ def manage_songs():
                 .then(data => {{
                     if (data.cover) {{
                         const preview = document.getElementById('cover-preview-' + songId);
-                        preview.innerHTML = '<img src="/covers/' + data.cover + '?t=' + Date.now() + '" style="max-width: 100px; max-height: 100px; border-radius: 8px;">';
-                        alert('✅ Bild hochgeladen!');
+                        preview.innerHTML = '<img src="/covers/' + data.cover + '?t=' + Date.now() + '" style="max-width: 100px; max-height: 100px; border-radius: 6px;">';
+                        alert('✓ Cover uploaded');
                     }}
                 }})
-                .catch(err => alert('❌ Fehler beim Hochladen'));
+                .catch(err => alert('✗ Upload failed'));
             }}
             
             function deleteSong(songId) {{
-                if (!confirm('Möchtest du diesen Song wirklich löschen?')) return;
+                if (!confirm('Delete this song?')) return;
                 
                 fetch('/api/delete-song', {{
                     method: 'POST',
@@ -451,11 +441,8 @@ def manage_songs():
                     body: JSON.stringify({{ id: songId }})
                 }})
                 .then(res => res.json())
-                .then(data => {{
-                    alert('🗑️ Gelöscht!');
-                    location.reload();
-                }})
-                .catch(err => alert('❌ Fehler beim Löschen'));
+                .then(data => {{ alert('✓ Deleted'); location.reload(); }})
+                .catch(err => alert('✗ Error'));
             }}
         </script>
     </body>
@@ -472,108 +459,98 @@ def settings_page():
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>Einstellungen</title>
+        <title>Settings</title>
         <style>
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-            body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                   min-height: 100vh; padding: 20px; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                   background: #f5f5f5; padding: 20px; }}
             .container {{ max-width: 800px; margin: 0 auto; }}
-            .header {{ background: white; padding: 20px 40px; border-radius: 15px; 
-                      margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-                      display: flex; justify-content: space-between; align-items: center; }}
-            .header h1 {{ color: #333; }}
-            .section {{ background: white; padding: 30px; border-radius: 15px; 
-                       margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }}
-            .section h2 {{ color: #333; margin-bottom: 20px; font-size: 20px; }}
-            .info-row {{ display: flex; justify-content: space-between; padding: 12px 0;
-                        border-bottom: 1px solid #eee; }}
+            .header {{ background: white; padding: 20px 30px; border-radius: 8px; 
+                      margin-bottom: 20px; display: flex; justify-content: space-between; 
+                      align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+            .header h1 {{ font-size: 24px; color: #333; font-weight: 600; }}
+            .section {{ background: white; padding: 25px; border-radius: 8px; 
+                       margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }}
+            .section h2 {{ color: #333; margin-bottom: 18px; font-size: 16px; font-weight: 600; }}
+            .info-row {{ display: flex; justify-content: space-between; padding: 10px 0;
+                        border-bottom: 1px solid #f5f5f5; }}
             .info-row:last-child {{ border-bottom: none; }}
-            .info-label {{ color: #666; font-weight: 600; }}
-            .info-value {{ color: #333; font-family: monospace; }}
-            .btn {{ background: #667eea; color: white; padding: 12px 30px; border: none; 
-                   border-radius: 8px; cursor: pointer; font-size: 16px; text-decoration: none;
-                   display: inline-block; }}
-            .btn:hover {{ background: #5568d3; }}
-            .btn-update {{ background: #10b981; }}
-            .btn-update:hover {{ background: #059669; }}
-            .btn-danger {{ background: #ef4444; }}
-            .btn-danger:hover {{ background: #dc2626; }}
-            #output {{ background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px;
-                      font-family: monospace; font-size: 12px; margin-top: 15px; 
-                      max-height: 300px; overflow-y: auto; display: none; }}
-            .status {{ display: inline-block; padding: 4px 12px; border-radius: 12px; 
-                      font-size: 12px; font-weight: 600; }}
-            .status-ok {{ background: #d1fae5; color: #065f46; }}
-            .status-error {{ background: #fee2e2; color: #991b1b; }}
+            .info-label {{ color: #666; font-size: 14px; }}
+            .info-value {{ color: #333; font-family: 'SF Mono', Monaco, monospace; font-size: 13px; }}
+            .btn {{ padding: 10px 20px; border: 1px solid #ddd; border-radius: 6px;
+                   cursor: pointer; font-size: 14px; text-decoration: none; background: white;
+                   color: #333; display: inline-block; transition: all 0.2s; }}
+            .btn:hover {{ background: #f5f5f5; border-color: #333; }}
+            .btn:disabled {{ opacity: 0.4; cursor: not-allowed; }}
+            .btn-update {{ background: #333; color: white; border-color: #333; }}
+            .btn-update:hover {{ background: #000; }}
+            .btn-danger {{ background: white; color: #d32f2f; border-color: #d32f2f; }}
+            .btn-danger:hover {{ background: #d32f2f; color: white; }}
+            #output {{ background: #f5f5f5; color: #333; padding: 15px; border-radius: 6px;
+                      font-family: 'SF Mono', Monaco, monospace; font-size: 12px; 
+                      margin-top: 15px; max-height: 300px; overflow-y: auto; display: none;
+                      border: 1px solid #e0e0e0; }}
+            .status {{ display: inline-block; padding: 4px 10px; border-radius: 4px; 
+                      font-size: 12px; font-weight: 500; }}
+            .status-ok {{ background: #e8f5e9; color: #2e7d32; }}
+            .status-error {{ background: #ffebee; color: #c62828; }}
+            .note {{ color: #666; font-size: 13px; margin-top: 12px; line-height: 1.5; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>⚙️ Einstellungen</h1>
+                <h1>Settings</h1>
                 <div>
-                    <a href="/manage" class="btn">📝 Songs verwalten</a>
-                    <a href="/" class="btn">🎮 Zur Jukebox</a>
+                    <a href="/manage" class="btn">Manage</a>
+                    <a href="/" class="btn">Jukebox</a>
                 </div>
             </div>
             
             <div class="section">
-                <h2>📂 Daten-Speicherort</h2>
+                <h2>Data Storage</h2>
                 <div class="info-row">
-                    <span class="info-label">Music Ordner:</span>
+                    <span class="info-label">Music folder</span>
                     <span class="info-value">{UPLOAD_FOLDER}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Cover Ordner:</span>
+                    <span class="info-label">Covers folder</span>
                     <span class="info-value">{COVERS_FOLDER}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Metadaten:</span>
+                    <span class="info-label">Metadata file</span>
                     <span class="info-value">{METADATA_FILE}</span>
                 </div>
-                <p style="margin-top: 15px; color: #666; font-size: 14px;">
-                    ℹ️ Alle Daten werden außerhalb des Git-Repositories gespeichert und bleiben bei Updates erhalten.
-                </p>
+                <p class="note">All data is stored outside the git repository and persists through updates.</p>
             </div>
             
             <div class="section">
-                <h2>🔄 Git Version Control</h2>
+                <h2>Git Version Control</h2>
                 <div class="info-row">
-                    <span class="info-label">Status:</span>
+                    <span class="info-label">Status</span>
                     <span class="status {'status-ok' if git_info['available'] else 'status-error'}">
-                        {'✅ Verfügbar' if git_info['available'] else '❌ Nicht verfügbar'}
+                        {'Available' if git_info['available'] else 'Not available'}
                     </span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Branch:</span>
+                    <span class="info-label">Branch</span>
                     <span class="info-value">{git_info['branch']}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Letzter Commit:</span>
+                    <span class="info-label">Last commit</span>
                     <span class="info-value">{git_info['commit']}</span>
                 </div>
                 
-                <div style="margin-top: 20px;">
+                <div style="margin-top: 18px;">
                     <button onclick="gitPull()" class="btn btn-update" {'disabled' if not git_info['available'] else ''}>
-                        🔄 Update von Git holen
+                        Update from Git
                     </button>
                     <button onclick="gitStatus()" class="btn" {'disabled' if not git_info['available'] else ''}>
-                        📊 Git Status
+                        Git Status
                     </button>
                 </div>
                 
                 <div id="output"></div>
-            </div>
-            
-            <div class="section">
-                <h2>🗑️ Wartung</h2>
-                <p style="color: #666; margin-bottom: 15px;">
-                    Vorsicht: Diese Aktionen können nicht rückgängig gemacht werden!
-                </p>
-                <button onclick="confirmAction('metadata')" class="btn btn-danger">
-                    ⚠️ Alle Metadaten zurücksetzen
-                </button>
             </div>
         </div>
         
@@ -585,7 +562,7 @@ def settings_page():
             }}
             
             function gitPull() {{
-                if (!confirm('App von Git aktualisieren? Der Server wird neu gestartet.')) return;
+                if (!confirm('Update app from Git? Server will restart.')) return;
                 
                 showOutput('Updating...');
                 
@@ -594,15 +571,15 @@ def settings_page():
                 .then(data => {{
                     showOutput(data.output);
                     if (data.success) {{
-                        alert('✅ Update erfolgreich! Server wird neu gestartet...');
+                        alert('✓ Update successful! Restarting...');
                         setTimeout(() => location.reload(), 3000);
                     }} else {{
-                        alert('❌ Update fehlgeschlagen. Siehe Output.');
+                        alert('✗ Update failed. Check output.');
                     }}
                 }})
                 .catch(err => {{
                     showOutput('Error: ' + err);
-                    alert('❌ Fehler beim Update');
+                    alert('✗ Update error');
                 }});
             }}
             
@@ -611,26 +588,8 @@ def settings_page():
                 
                 fetch('/api/git-status')
                 .then(res => res.json())
-                .then(data => {{
-                    showOutput(data.output);
-                }})
-                .catch(err => {{
-                    showOutput('Error: ' + err);
-                }});
-            }}
-            
-            function confirmAction(action) {{
-                if (action === 'metadata') {{
-                    if (!confirm('Alle Metadaten löschen? Songs bleiben erhalten, aber Titel/Beschreibungen/Cover werden entfernt.')) return;
-                    
-                    fetch('/api/reset-metadata', {{ method: 'POST' }})
-                    .then(res => res.json())
-                    .then(data => {{
-                        alert('✅ Metadaten zurückgesetzt');
-                        location.reload();
-                    }})
-                    .catch(err => alert('❌ Fehler'));
-                }}
+                .then(data => showOutput(data.output))
+                .catch(err => showOutput('Error: ' + err));
             }}
         </script>
     </body>

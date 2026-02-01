@@ -2,7 +2,7 @@
 
 Eine professionelle 3D-Jukebox mit **Song-IDs**, **externem Datenspeicher** und **Git-Update-Funktion**, entwickelt mit Unity und Flask.
 
-## 🚀 Neue Features (Pro Edition)
+## 🚀 Neue Features
 
 ### ✅ Sicherer Update-Prozess
 - **Externer Datenspeicher**: Alle Uploads werden außerhalb des Git-Repos in `../jukebox_data/` gespeichert
@@ -58,10 +58,6 @@ pip3 install flask flask-cors
 sudo apt-get update
 sudo apt-get install python3-flask python3-flask-cors
 ```
-
-### 3. Unity WebGL Build
-
-Exportiere deine Unity-App nach `webgl_build/`
 
 ## 🏃‍♂️ Server starten
 
@@ -353,46 +349,3 @@ Response: {"success": true, "output": "..."}
 3. ✅ Verwende aussagekräftige Titel & Beschreibungen
 4. ✅ Behalte originale Dateinamen bei
 
-## 🛣 Roadmap
-
-### Geplante Features:
-- [ ] Playlist-System mit IDs
-- [ ] Bulk-Upload mit Metadaten-Import
-- [ ] Automatische Cover-Downloads (Spotify/iTunes API)
-- [ ] Song-Statistiken (Play Count, Last Played)
-- [ ] User-System mit Favoriten
-- [ ] QR-Code für Mobile-Upload
-- [ ] WebSocket für Live-Updates
-- [ ] Datenbank-Migration (SQLite)
-
-## 📝 Changelog
-
-### v2.0.0 (Current)
-- ✨ Song-IDs System (UUIDs)
-- ✨ Externer Datenspeicher (`jukebox_data/`)
-- ✨ Settings-Panel mit Git-Integration
-- ✨ Upload-Zeitstempel
-- 🔒 .gitignore für Datenschutz
-- 📚 Erweiterte Dokumentation
-
-### v1.0.0
-- 🎵 Basis Jukebox-Funktionalität
-- 📤 File Upload
-- 🖼️ Cover-Bilder
-- ✏️ Metadaten-Verwaltung
-
-## 📧 Support
-
-Bei Fragen oder Problemen:
-- 🐛 Issue auf GitHub öffnen
-- 📧 Email an [deine-email]
-- 💬 Discord: [dein-discord]
-
-## 📄 Lizenz
-
-[MIT License]
-
----
-
-**Entwickelt mit ❤️ von Fabian Freund**  
-Powered by Unity, Flask & Raspberry Pi
