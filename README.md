@@ -1,237 +1,316 @@
 # 🎵 Steph's Jukebox
 
-Eine professionelle 3D-Jukebox mit **Song-IDs**, **externem Datenspeicher** und **Git-Update-Funktion**, entwickelt mit Unity und Flask.
+Unity WebGL Jukebox - Ready-to-go Installation für Raspberry Pi
 
-## 🚀 Neue Features
+## 📋 Voraussetzungen
 
-### ✅ Sicherer Update-Prozess
-- **Externer Datenspeicher**: Alle Uploads werden außerhalb des Git-Repos in `../jukebox_data/` gespeichert
-- **Git-Updates**: Hole neue Versionen direkt vom Server ohne Datenverlust
-- **Song-IDs**: Jeder Upload erhält eine eindeutige UUID, keine Dateinamen-Konflikte mehr
+- Raspberry Pi 3 oder 4 (4GB+ RAM empfohlen)
+- Raspbian/Raspberry Pi OS installiert
+- Internetverbindung
+- Tastatur & Maus für Setup
 
-### 📝 Verwaltung
-- Titel, Beschreibungen und Cover bearbeiten
-- Songs über eindeutige IDs verwalten
-- Upload-Zeitstempel für jeden Song
+## 🚀 Installation (3 einfache Schritte)
 
-### ⚙️ Settings-Panel
-- Git-Status anzeigen
-- Updates mit einem Klick installieren
-- Daten-Pfade einsehen
-- Metadaten zurücksetzen
+### Schritt 1: System vorbereiten
 
-## 📁 Ordnerstruktur
-
-```
-Steph_Jukebox/                  # Git Repository
-├── server.py                    # Flask Server
-├── webgl_build/                 # Unity WebGL Build
-│   ├── index.html
-│   └── Build/
-├── .gitignore                   # Schützt jukebox_data/
-└── README.md
-
-jukebox_data/                    # AUSSERHALB von Git (bleibt bei Updates erhalten!)
-├── music/                       # MP3-Dateien
-├── covers/                      # Cover-Bilder
-└── songs_metadata.json          # Song-Metadaten mit IDs
-```
-
-## 🛠 Installation
-
-### 1. Repository klonen
+Öffne das Terminal und führe aus:
 
 ```bash
+sudo apt-get update
+sudo apt-get upgrade -y
+sudo apt-get install git python3-flask python3-flask-cors -y
+```
+
+### Schritt 2: Jukebox installieren
+
+```bash
+cd ~
 git clone https://github.com/fabianfreund/Steph_Jukebox.git
 cd Steph_Jukebox
 ```
 
-### 2. Abhängigkeiten installieren
-
-**Mac:**
-```bash
-pip3 install flask flask-cors
-```
-
-**Raspberry Pi:**
-```bash
-sudo apt-get update
-sudo apt-get install python3-flask python3-flask-cors
-```
-
-## 🏃‍♂️ Server starten
+### Schritt 3: Server testen
 
 ```bash
 python3 server.py
 ```
 
-Der Server erstellt automatisch den `jukebox_data` Ordner beim ersten Start.
+Öffne Browser: `http://localhost:5001`
 
-### Verfügbare Seiten:
+Wenn die Jukebox läuft, drücke `Ctrl+C` um zu stoppen.
 
-| URL | Beschreibung |
-|-----|--------------|
-| `http://localhost:5001` | 🎮 **Jukebox** - Unity WebGL App |
-| `http://localhost:5001/upload` | ➕ **Upload** - Neue Songs hochladen |
-| `http://localhost:5001/manage` | 📝 **Verwaltung** - Songs bearbeiten |
-| `http://localhost:5001/settings` | ⚙️ **Einstellungen** - Git-Updates & System |
+**Das war's - die Jukebox läuft!** 🎉
 
-## 🔄 Updates installieren
+## 🔄 Autostart einrichten
 
-### Über die Web-UI (empfohlen):
-
-1. Gehe zu `http://localhost:5001/settings`
-2. Klicke auf "🔄 Update von Git holen"
-3. Bestätige die Aktion
-4. Warte bis der Server neu startet
-
-### Manuell via Terminal:
+### Automatischer Server-Start
 
 ```bash
-cd Steph_Jukebox
-git pull
-python3 server.py
+sudo nano /etc/systemd/system/jukebox.service
 ```
 
-**Wichtig:** Deine Musik, Cover und Metadaten bleiben erhalten, da sie außerhalb des Git-Repos liegen!
+Füge ein (mit `Ctrl+Shift+V` einfügen):
 
-## 📝 Song-IDs System
+```ini
+[Unit]
+Description=Steph's Jukebox Server
+After=network.target
 
-### Wie es funktioniert:
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/Steph_Jukebox
+ExecStart=/usr/bin/python3 /home/pi/Steph_Jukebox/server.py
+Restart=always
 
-Jeder hochgeladene Song erhält eine eindeutige UUID:
-
-```json
-{
-  "a1b2c3d4-e5f6-7890-abcd-ef1234567890": {
-    "filename": "song.mp3",
-    "title": "Mein Song",
-    "description": "Artist - Album (2024)",
-    "cover": "a1b2c3d4-e5f6-7890-abcd-ef1234567890_cover.jpg",
-    "uploaded_at": "2024-02-01T10:30:00"
-  }
-}
+[Install]
+WantedBy=multi-user.target
 ```
 
-### Vorteile:
+Speichern: `Ctrl+O`, `Enter`, `Ctrl+X`
 
-- ✅ Dateinamen können sich ändern ohne Probleme
-- ✅ Keine Konflikte bei gleichen Dateinamen
-- ✅ Einfaches Tracking und Referenzieren
-- ✅ Cover-Bilder verwenden Song-ID als Namen
-
-## 🎮 Unity Integration
-
-### API-Endpunkte für Unity:
-
-```csharp
-// Songs mit IDs laden
-GET /api/songs
-// Response: Array von Song-Objekten mit IDs
-
-// Song streamen (über ID, nicht Dateiname!)
-GET /api/stream/{song_id}
-
-// Cover laden
-GET /covers/{filename}
-```
-
-### Beispiel API-Response:
-
-```json
-[
-  {
-    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-    "filename": "song.mp3",
-    "title": "Awesome Song",
-    "description": "Artist - Album",
-    "cover": "a1b2c3d4_cover.jpg",
-    "uploaded_at": "2024-02-01T10:30:00"
-  }
-]
-```
-
-### JukeboxManager.cs Setup:
-
-1. Füge `JukeboxManager.cs` zu einem GameObject hinzu
-2. Erstelle Button-Prefab für Songs
-3. Verknüpfe UI-Elemente im Inspector:
-   - `songButtonContainer`: Transform für Buttons
-   - `songButtonPrefab`: Button-Prefab
-   - `nowPlayingTitle`: Text für Titel
-   - `nowPlayingDescription`: Text für Beschreibung
-   - `nowPlayingCover`: Image für Cover
-
-### Wichtiger Unterschied:
-
-```csharp
-// ALT (Dateiname-basiert):
-string audioURL = $"{serverURL}/music/{song.filename}";
-
-// NEU (ID-basiert):
-string audioURL = $"{serverURL}/api/stream/{song.id}";
-```
-
-## ⚙️ Settings-Panel Features
-
-### Git-Informationen:
-- Aktueller Branch
-- Letzter Commit
-- Git-Status
-
-### Update-Funktion:
-- Automatisches `git pull`
-- Server-Neustart nach Update
-- Fehlermeldungen im Output-Fenster
-
-### Wartung:
-- Metadaten zurücksetzen (Songs bleiben erhalten)
-- Pfade anzeigen
-
-## 🔒 Datensicherheit
-
-### Was ist in Git?
-✅ Server-Code (`server.py`)  
-✅ Unity-Build (`webgl_build/`)  
-✅ README & Dokumentation  
-
-### Was ist NICHT in Git?
-❌ Hochgeladene Songs (`../jukebox_data/music/`)  
-❌ Cover-Bilder (`../jukebox_data/covers/`)  
-❌ Metadaten (`../jukebox_data/songs_metadata.json`)  
-
-Die `.gitignore` Datei schützt automatisch den `jukebox_data` Ordner!
-
-## 💾 Backup
-
-Erstelle regelmäßig Backups deiner Daten:
+Service aktivieren:
 
 ```bash
-# Komplettes Backup
-tar -czf jukebox_backup_$(date +%Y%m%d).tar.gz ../jukebox_data/
-
-# Nur Metadaten
-cp ../jukebox_data/songs_metadata.json ~/backups/
+sudo systemctl enable jukebox.service
+sudo systemctl start jukebox.service
 ```
 
-## 🚀 Deployment auf Raspberry Pi
-
-### Autostart einrichten:
+### Automatischer Browser-Start (Fullscreen)
 
 ```bash
-sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+mkdir -p ~/.config/lxsession/LXDE-pi
+nano ~/.config/lxsession/LXDE-pi/autostart
 ```
 
 Füge hinzu:
 
 ```bash
-@/usr/bin/python3 /home/pi/Steph_Jukebox/server.py
-@chromium-browser --kiosk http://localhost:5001
+@chromium-browser --kiosk --noerrdialogs --disable-infobars --disable-session-crashed-bubble http://localhost:5001
+@xset s off
+@xset -dpms
+@xset s noblank
 ```
 
-### Systemd Service (empfohlen):
+Speichern: `Ctrl+O`, `Enter`, `Ctrl+X`
 
-Erstelle `/etc/systemd/system/jukebox.service`:
+### Pi neustarten
+
+```bash
+sudo reboot
+```
+
+Nach dem Neustart startet Steph's Jukebox automatisch im Vollbild! 🎵
+
+## 📂 Songs hochladen
+
+### Option 1: Über Web-Interface
+
+1. Öffne auf einem anderen Gerät im gleichen Netzwerk:
+   ```
+   http://raspberrypi.local:5001/upload
+   ```
+   
+2. Ziehe MP3-Dateien in das Fenster
+
+### Option 2: Direkt per USB
+
+```bash
+# USB-Stick einstecken, dann:
+cp /media/pi/USB_STICK/*.mp3 ~/jukebox_data/music/
+```
+
+Danach über `/manage` Titel und Cover hinzufügen.
+
+## 🔧 Nützliche Befehle
+
+### Server-Status prüfen
+
+```bash
+sudo systemctl status jukebox.service
+```
+
+### Server neu starten
+
+```bash
+sudo systemctl restart jukebox.service
+```
+
+### Server-Logs ansehen
+
+```bash
+sudo journalctl -u jukebox.service -f
+```
+
+### Update installieren
+
+```bash
+cd ~/Steph_Jukebox
+git pull
+sudo systemctl restart jukebox.service
+```
+
+## 🌐 Von anderen Geräten zugreifen
+
+Finde die IP-Adresse des Pi:
+
+```bash
+hostname -I
+```
+
+Dann auf anderen Geräten im Netzwerk:
+```
+http://192.168.1.XXX:5001
+```
+
+## 🐛 Häufige Probleme
+
+### Problem: "Address already in use"
+
+```bash
+sudo lsof -ti:5001 | xargs sudo kill -9
+sudo systemctl restart jukebox.service
+```
+
+### Problem: Browser startet nicht automatisch
+
+Desktop-Umgebung aktivieren:
+
+```bash
+sudo raspi-config
+# -> System Options -> Boot / Auto Login -> Desktop Autologin
+```
+
+### Problem: Jukebox lädt nicht
+
+```bash
+# Prüfe ob Server läuft:
+curl http://localhost:5001
+
+# Logs checken:
+sudo journalctl -u jukebox.service -n 50
+```
+
+### Problem: Keine Songs sichtbar
+
+```bash
+# Prüfe Dateien:
+ls -la ~/jukebox_data/music/
+
+# Prüfe Metadaten:
+cat ~/jukebox_data/songs_metadata.json
+```
+
+### Problem: Pi zu langsam
+
+In `/boot/config.txt` hinzufügen:
+
+```bash
+sudo nano /boot/config.txt
+```
+
+Füge hinzu:
+```
+# GPU Memory
+gpu_mem=256
+
+# Overclock (nur Pi 4!)
+over_voltage=6
+arm_freq=2000
+```
+
+Dann:
+```bash
+sudo reboot
+```
+
+## 💾 Backup erstellen
+
+```bash
+# Auf USB-Stick sichern:
+cp -r ~/jukebox_data /media/pi/USB_STICK/jukebox_backup_$(date +%Y%m%d)
+
+# Oder als Archiv:
+tar -czf ~/jukebox_backup.tar.gz ~/jukebox_data
+```
+
+## 🎯 Performance-Tipps
+
+### Raspberry Pi optimieren:
+```bash
+# Swap erhöhen (wenn oft einfriert):
+sudo dphys-swapfile swapoff
+sudo nano /etc/dphys-swapfile
+# Ändere: CONF_SWAPSIZE=2048
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+
+# Chromium beschleunigen:
+# Verwende --disable-gpu im autostart wenn laggy
+```
+
+## 📊 Web-Interface
+
+| Seite | URL | Funktion |
+|-------|-----|----------|
+| Jukebox | `/` | Unity WebGL App |
+| Upload | `/upload` | MP3s hochladen |
+| Manage | `/manage` | Titel/Cover bearbeiten |
+| Settings | `/settings` | Git-Updates |
+
+## 🔒 Ordnerstruktur
+
+```
+~/Steph_Jukebox/        # Git Repository
+├── server.py           # Flask Server
+├── webgl_build/        # Unity Build (aus Git)
+├── .gitignore
+└── README.md
+
+~/jukebox_data/         # Deine Daten (sicher!)
+├── music/              # MP3-Dateien
+├── covers/             # Cover-Bilder
+└── songs_metadata.json # Song-Infos
+```
+
+**Wichtig:** Der `jukebox_data` Ordner liegt außerhalb von Git.  
+Bei Updates bleiben alle Songs erhalten!
+
+## 📱 Remote-Zugriff einrichten (optional)
+
+### Per Smartphone steuern:
+
+```bash
+sudo apt-get install avahi-daemon -y
+sudo systemctl enable avahi-daemon
+```
+
+Dann von Smartphone:
+```
+http://raspberrypi.local:5001
+```
+
+## ❓ Support
+
+Bei Problemen:
+
+1. Logs prüfen: `sudo journalctl -u jukebox.service -f`
+2. Debug-Endpoint: `http://localhost:5001/api/debug/files`
+3. Issue auf GitHub öffnen
+
+---
+
+**Viel Spaß mit Steph's Jukebox! 🎵**
+
+## 🔄 Autostart einrichten
+
+### Automatischer Server-Start
+
+```bash
+sudo nano /etc/systemd/system/jukebox.service
+```
+
+Füge ein (mit `Ctrl+Shift+V` einfügen):
 
 ```ini
 [Unit]
@@ -249,103 +328,246 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-Aktivieren:
+Speichern: `Ctrl+O`, `Enter`, `Ctrl+X`
+
+Service aktivieren:
 
 ```bash
 sudo systemctl enable jukebox.service
 sudo systemctl start jukebox.service
 ```
 
-## 🔧 Troubleshooting
+### Automatischer Browser-Start (Fullscreen)
 
-### Problem: Git-Update funktioniert nicht
-
-**Lösung:**
 ```bash
-cd Steph_Jukebox
-git fetch origin
-git reset --hard origin/main
-python3 server.py
+mkdir -p ~/.config/lxsession/LXDE-pi
+nano ~/.config/lxsession/LXDE-pi/autostart
 ```
 
-### Problem: Songs verschwunden nach Update
+Füge hinzu:
 
-**Antwort:** Das sollte nicht passieren! Songs liegen außerhalb von Git.
-
-**Prüfen:**
 ```bash
-ls -la ../jukebox_data/music/
-cat ../jukebox_data/songs_metadata.json
+@chromium-browser --kiosk --noerrdialogs --disable-infobars --disable-session-crashed-bubble http://localhost:5001
+@xset s off
+@xset -dpms
+@xset s noblank
 ```
 
-### Problem: "Permission denied" bei Git-Pull
+Speichern: `Ctrl+O`, `Enter`, `Ctrl+X`
 
-**Lösung:**
+### Pi neustarten
+
 ```bash
-cd Steph_Jukebox
-sudo chown -R $USER:$USER .git
+sudo reboot
 ```
 
-### Problem: Server startet nicht nach Update
+Nach dem Neustart sollte die Jukebox automatisch im Vollbild starten!
 
-**Lösung:**
+## 📂 Songs hochladen
+
+### Option 1: Über Web-Interface
+
+1. Öffne auf einem anderen Gerät im gleichen Netzwerk:
+   ```
+   http://raspberrypi.local:5001/upload
+   ```
+   
+2. Ziehe MP3-Dateien in das Fenster
+
+### Option 2: Direkt per USB
+
 ```bash
-# Dependencies neu installieren
-pip3 install --upgrade flask flask-cors
-
-# Server manuell starten
-python3 server.py
+# USB-Stick einstecken, dann:
+cp /media/pi/USB_STICK/*.mp3 ~/jukebox_data/music/
 ```
 
-## 📊 API-Referenz
+Danach über `/manage` Titel und Cover hinzufügen.
 
-### Songs abrufen
-```
-GET /api/songs
-Response: Array von Song-Objekten
-```
+## 🔧 Nützliche Befehle
 
-### Song streamen
-```
-GET /api/stream/{song_id}
-Response: MP3-Datei
+### Server-Status prüfen
+
+```bash
+sudo systemctl status jukebox.service
 ```
 
-### Song aktualisieren
-```
-POST /api/update-song
-Body: {"id": "...", "title": "...", "description": "..."}
+### Server neu starten
+
+```bash
+sudo systemctl restart jukebox.service
 ```
 
-### Cover hochladen
-```
-POST /api/upload-cover
-Form Data: file, song_id
-```
+### Server-Logs ansehen
 
-### Song löschen
-```
-POST /api/delete-song
-Body: {"id": "..."}
+```bash
+sudo journalctl -u jukebox.service -f
 ```
 
-### Git-Update
+### Update installieren
+
+```bash
+cd ~/Steph_Jukebox
+git pull
+sudo systemctl restart jukebox.service
 ```
-POST /api/git-pull
-Response: {"success": true, "output": "..."}
+
+## 🌐 Von anderen Geräten zugreifen
+
+Finde die IP-Adresse des Pi:
+
+```bash
+hostname -I
 ```
 
-## 🎯 Best Practices
+Dann auf anderen Geräten im Netzwerk:
+```
+http://192.168.1.XXX:5001
+```
 
-### Für Entwickler:
-1. ✅ Teste Updates zuerst lokal
-2. ✅ Erstelle Backups vor großen Änderungen
-3. ✅ Verwende Feature-Branches für neue Features
-4. ✅ Dokumentiere Breaking Changes im README
+## 🐛 Häufige Probleme
 
-### Für Benutzer:
-1. ✅ Regelmäßige Backups von `jukebox_data/`
-2. ✅ Prüfe Git-Status vor Updates
-3. ✅ Verwende aussagekräftige Titel & Beschreibungen
-4. ✅ Behalte originale Dateinamen bei
+### Problem: "Address already in use"
 
+```bash
+sudo lsof -ti:5001 | xargs sudo kill -9
+sudo systemctl restart jukebox.service
+```
+
+### Problem: Browser startet nicht automatisch
+
+Desktop-Umgebung aktivieren:
+
+```bash
+sudo raspi-config
+# -> System Options -> Boot / Auto Login -> Desktop Autologin
+```
+
+### Problem: Jukebox lädt nicht
+
+```bash
+# Prüfe ob Server läuft:
+curl http://localhost:5001
+
+# Prüfe Unity-Build:
+ls -la ~/Steph_Jukebox/webgl_build/
+
+# Logs checken:
+sudo journalctl -u jukebox.service -n 50
+```
+
+### Problem: Keine Songs sichtbar
+
+```bash
+# Prüfe Dateien:
+ls -la ~/jukebox_data/music/
+
+# Prüfe Metadaten:
+cat ~/jukebox_data/songs_metadata.json
+```
+
+### Problem: Pi zu langsam
+
+In `/boot/config.txt` hinzufügen:
+
+```bash
+sudo nano /boot/config.txt
+```
+
+Füge hinzu:
+```
+# GPU Memory
+gpu_mem=256
+
+# Overclock (nur Pi 4!)
+over_voltage=6
+arm_freq=2000
+```
+
+Dann:
+```bash
+sudo reboot
+```
+
+## 💾 Backup erstellen
+
+```bash
+# Auf USB-Stick sichern:
+cp -r ~/jukebox_data /media/pi/USB_STICK/jukebox_backup_$(date +%Y%m%d)
+
+# Oder als Archiv:
+tar -czf ~/jukebox_backup.tar.gz ~/jukebox_data
+```
+
+## 🎯 Performance-Tipps
+
+### Unity WebGL optimieren:
+- Verwende **Disabled** Compression in Unity
+- Reduziere Textur-Qualität auf 512px
+- Verwende Mobile Shader Varianten
+- Aktiviere **GPU Instancing**
+
+### Raspberry Pi optimieren:
+```bash
+# Swap erhöhen (wenn oft einfriert):
+sudo dphys-swapfile swapoff
+sudo nano /etc/dphys-swapfile
+# Ändere: CONF_SWAPSIZE=2048
+sudo dphys-swapfile setup
+sudo dphys-swapfile swapon
+
+# Chromium beschleunigen:
+# Verwende --disable-gpu im autostart wenn laggy
+```
+
+## 📊 Web-Interface
+
+| Seite | URL | Funktion |
+|-------|-----|----------|
+| Jukebox | `/` | Unity WebGL App |
+| Upload | `/upload` | MP3s hochladen |
+| Manage | `/manage` | Titel/Cover bearbeiten |
+| Settings | `/settings` | Git-Updates |
+
+## 🔒 Ordnerstruktur
+
+```
+~/Steph_Jukebox/        # Git Repository
+├── server.py           # Flask Server
+├── webgl_build/        # Unity Build
+├── .gitignore
+└── README.md
+
+~/jukebox_data/         # Deine Daten (sicher!)
+├── music/              # MP3-Dateien
+├── covers/             # Cover-Bilder
+└── songs_metadata.json # Song-Infos
+```
+
+**Wichtig:** Der `jukebox_data` Ordner liegt außerhalb von Git.  
+Bei Updates bleiben alle Songs erhalten!
+
+## 📱 Remote-Zugriff einrichten (optional)
+
+### Per Smartphone steuern:
+
+```bash
+sudo apt-get install avahi-daemon -y
+sudo systemctl enable avahi-daemon
+```
+
+Dann von Smartphone:
+```
+http://raspberrypi.local:5001
+```
+
+## ❓ Support
+
+Bei Problemen:
+
+1. Logs prüfen: `sudo journalctl -u jukebox.service -f`
+2. Debug-Endpoint: `http://localhost:5001/api/debug/files`
+3. Issue auf GitHub öffnen
+
+---
+
+**Viel Spaß mit deiner Jukebox! 🎵**
