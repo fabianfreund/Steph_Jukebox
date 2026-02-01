@@ -1,4 +1,4 @@
-# 🎵 Unity Raspberry Pi Jukebox (Pro Edition)
+# 🎵 Steph's Jukebox
 
 Eine professionelle 3D-Jukebox mit **Song-IDs**, **externem Datenspeicher** und **Git-Update-Funktion**, entwickelt mit Unity und Flask.
 
